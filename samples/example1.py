@@ -1,5 +1,8 @@
 import time
+import os, sys
+#Previous version was in file ../example1.py
 
+sys.path.append(os.path.realpath(".."))
 import workerthread
 
 def printFromWorkerThread(message):
@@ -16,10 +19,12 @@ if __name__ == '__main__':
 	workerthread.executeInWorkerThread(
 		lambda: printFromWorkerThread("Message 1")
 	)
+	print "Message 1 task was posted to worker thread"
 	
 	workerthread.executeInWorkerThread(
 		lambda: printFromWorkerThread("Message 2")
 	)
+	print "Message 2 task was posted to worker thread"
 	
 	i=0
 	while i<6:
