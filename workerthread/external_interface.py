@@ -1,6 +1,18 @@
 import globals
 import workerthread
+try:
+    import wx
+except ImportError:
+    wx = None
 
+def dummyFunction():
+    print "THis is a dummy function doing nothing"
+
+def test2Print():
+	print "test2Print - OK"
+
+if not wx:
+  test2Print = dummyFunction
 
 
 def executeInWorkerThread(function2execute, delay_ms=0, result_callback=None):

@@ -5,11 +5,16 @@ Function parameters from: http://stackoverflow.com/questions/803616/passing-func
 """
 
 import threading
-#import wx
 import Queue, collections
 import time
 
-import exception_window
+try:
+    import wx
+except ImportError:
+    wx = None
+
+if not (wx==None):
+	import exception_window
 
 
 class TimedEvent:
@@ -76,7 +81,8 @@ class WorkerThread(threading.Thread):
 					try:
 						func_2do()
 					except Exception as e:
-						exception_window.call_exception_dialog_NONGUI_thread("Exception in WorkerThread",
+						if not (wx==None):
+							exception_window.call_exception_dialog_NONGUI_thread("Exception in WorkerThread",
 										"Nothing can be done at the moment. Please send this report to developer",
 										"WorkerThread exception executing user code")
 			#END if func_2do==-1:
