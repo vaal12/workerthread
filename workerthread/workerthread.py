@@ -4,6 +4,13 @@ Main idea from http://wiki.wxpython.org/LongRunningTasks
 Function parameters from: http://stackoverflow.com/questions/803616/passing-functions-with-arguments-to-another-function-in-python
 """
 
+
+"""
+1. If this does not stop by itself Ctrl+Pause/Break instead of Ctrl+C can stop all
+python threads from console
+
+"""
+
 import threading
 import Queue, collections
 import time
@@ -21,9 +28,7 @@ class TimedEvent:
 	def __init__(self, function2Execute, delayInterval_ms):
 		self.function2Execute = function2Execute
 		currTime = time.time()
-		#print "Current time:%s"%currTime
 		futureTime = currTime+(delayInterval_ms/1000.0)
-		#print "Future time:%s"%futureTime
 		self.time2Execute = futureTime
 		
 class WorkerThread(threading.Thread):
@@ -46,13 +51,15 @@ class WorkerThread(threading.Thread):
 		self.timedList.append(te)
 		self.timedListLock.release()
 
-	def postWork(self, functionToExecute):
-		self.worksQueue.put(functionToExecute)
+	def postWork(self, functionToExecute, result_callback=None):
+		self.worksQueue.put(
+			(functionToExecute, result_callback)
+			)
 
 	def run(self):
 		"""Run Worker Thread."""
 		while True:
-			#print "WorkerThread heartbeat"
+			print "WorkerThread heartbeat"
 			func_2do = None
 			try:
 				func_2do = None
@@ -67,32 +74,51 @@ class WorkerThread(threading.Thread):
 					i+=1
 				self.timedListLock.release()
 				if func_2do==None:
-					try:#This will block for 0.1 sec waiting for the non timed task
-						func_2do = self.worksQueue.get(True, 2)
-					except Exception as e:
+					try:#This will block for 2sec waiting for the non timed task
+						#TODO: make waiting timeout settable from external_interface
+						#of the workerthread
+						(func_2do, result_callback) = self.worksQueue.get(True, 2)
+						#print "Received func_2do:%s"%func_2do
+					except Queue.Empty as empty_exception:
+						#This is fine: Queue.Empty is supposed to be thrown when timeout is reached
+						#http://docs.python.org/library/queue.html
 						pass
 			except Exception as e:
-				pass#print "Some exception occured:%s"%e
+				pass
+				print "Some exception occured in retrieval of the function to execute:%s"%e
 			#END try:
 			if func_2do==-1:
+				#print "Function is -1 should stop"
 				break
-			else:
+			else:#if func_2do==-1:
 				if isinstance(func_2do, collections.Callable):
+					execResult = None
 					try:
-						func_2do()
+						execResult = func_2do()
 					except Exception as e:
+						print "Exception in execution of the function in the workerthread"
+						print e
 						if not (wx==None):
 							exception_window.call_exception_dialog_NONGUI_thread("Exception in WorkerThread",
 										"Nothing can be done at the moment. Please send this report to developer",
 										"WorkerThread exception executing user code")
-			#END if func_2do==-1:
+					if result_callback <> None:
+						try:
+							result_callback(execResult)
+						except Exception as e:
+							print "Exception in execution of the result callback function in the workerthread"
+							print e
+					print "After result callback"
+			#END else:#if func_2do==-1:
 		self.abortionEvent.set()
 	#END def run(self):
 
 	def abort(self):
 		"""abort worker thread."""
 		# Method for use by main thread to signal an abort
-		self.worksQueue.put(-1)
+		#TODO: make a Workthread event to be posted both to timedqueue and to normal
+		#queues, which will have all the necessary fields
+		self.worksQueue.put((-1, None))
 		
 	def abortAndWaitForCompletion(self):
 		self.abort()
