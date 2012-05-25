@@ -59,7 +59,7 @@ class WorkerThread(threading.Thread):
 	def run(self):
 		"""Run Worker Thread."""
 		while True:
-			print "WorkerThread heartbeat"
+			#print "WorkerThread heartbeat"
 			func_2do = None
 			try:
 				func_2do = None

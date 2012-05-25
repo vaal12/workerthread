@@ -4,9 +4,9 @@ import os, sys
 sys.path.append(os.path.realpath(".."))
 import workerthread
 
-
+@workerthread.executeInWorkerThreadDecorator
 @workerthread.dumpArgsDecorator
-def dumpMyArguments(message, key):
+def dumpMyArgumentsFromWorkerThread(message, key):
 	print "This is print from dumpMyArguments"
 
 
@@ -20,6 +20,13 @@ def printFromWorkerThread(message):
 		i+=1
 	print "\tprintFromWorkerThread %s After sleep. Finished"%message
 	
+@workerthread.executeInWorkerThreadDecorator	
+@workerthread.trace
+def traceExampleFromWorkerThread(message):
+	print "MEssage"
+	print message
+	return None
+	
 	
 	
 if __name__ == '__main__':
@@ -29,7 +36,9 @@ if __name__ == '__main__':
 	printFromWorkerThread("Message 2")
 	print "Message 2 task was posted to worker thread"
 	
-	dumpMyArguments("Message to function", "Key to function")
+	dumpMyArgumentsFromWorkerThread("Message to function", "Key to function")
+	
+	traceExampleFromWorkerThread("Message to trace")
 	
 	i=0
 	while i<6:

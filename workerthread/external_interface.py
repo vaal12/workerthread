@@ -1,3 +1,24 @@
+#
+# Copyright 2012 by Alexey Vassiliev
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """
 Packaging link: http://guide.python-distribute.org/introduction.html
 
@@ -7,7 +28,17 @@ http://epydoc.sourceforge.net/
 
 http://www.oracle.com/technetwork/java/javase/documentation/index-jsp-135444.html
 
+
+
 """
+#TODO: Think about adding http://wiki.python.org/moin/PythonDecoratorLibrary#Synchronization
+#Synchronizing decorator
+
+#TODO: add software licence to all files.
+
+import sys
+import os
+import linecache
 
 import globals
 import workerthread
@@ -59,6 +90,8 @@ def dumpArgsDecorator(func):
 
 
 class executeInWorkerThreadDecorator(object):
+	#TODO: add parameter for delay and if possible for result_callback
+	#TODO: test with class methods
 	def __init__(self, f):
 		#print "Inside __init__()"
 		#Doc on decorators http://www.artima.com/weblogs/viewpost.jsp?thread=240845
@@ -87,6 +120,36 @@ class executeInGUIThreadDecorator(object):
 	#		lambda: self.execFunc(*args)
 	#	
 	pass
+
+
+
+
+def trace(f):
+	#From http://wiki.python.org/moin/PythonDecoratorLibrary#Line_Tracing_Individual_Functions
+	def globaltrace(frame, why, arg):
+			if why == "call":
+					return localtrace
+			return None
+
+	def localtrace(frame, why, arg):
+			if why == "line":
+					# record the file name and line number of every trace
+					filename = frame.f_code.co_filename
+					lineno = frame.f_lineno
+
+					bname = os.path.basename(filename)
+					print "{}({}): {}".format(  bname, 
+																			lineno,
+																			linecache.getline(filename, lineno)),
+			return localtrace
+
+	def _f(*args, **kwds):
+			sys.settrace(globaltrace)
+			result = f(*args, **kwds)
+			sys.settrace(None)
+			return result
+
+	return _f
 
 	
 if not wx:
