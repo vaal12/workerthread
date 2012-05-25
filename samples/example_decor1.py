@@ -1,10 +1,16 @@
 import time
 import os, sys
 
-
 sys.path.append(os.path.realpath(".."))
 import workerthread
 
+
+@workerthread.dumpArgsDecorator
+def dumpMyArguments(message, key):
+	print "This is print from dumpMyArguments"
+
+
+@workerthread.executeInWorkerThreadDecorator
 def printFromWorkerThread(message):
 	print "\tprintFromWorkerThread %s Before sleep"%message
 	i=0
@@ -15,16 +21,15 @@ def printFromWorkerThread(message):
 	print "\tprintFromWorkerThread %s After sleep. Finished"%message
 	
 	
+	
 if __name__ == '__main__':
-	workerthread.executeInWorkerThread(
-		lambda: printFromWorkerThread("Message 1")
-	)
+	printFromWorkerThread("Message 1")
 	print "Message 1 task was posted to worker thread"
 	
-	workerthread.executeInWorkerThread(
-		lambda: printFromWorkerThread("Message 2")
-	)
+	printFromWorkerThread("Message 2")
 	print "Message 2 task was posted to worker thread"
+	
+	dumpMyArguments("Message to function", "Key to function")
 	
 	i=0
 	while i<6:
