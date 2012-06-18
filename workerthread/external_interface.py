@@ -123,7 +123,7 @@ def dumpArgsDecorator(func):
 			for entry in zip(argnames,args) + kwargs.items())
 		return func(*args, **kwargs)
 	return echo_func
-
+dumpArgsDecorator
 
 class executeInWorkerThreadDecorator(object):
 	"""
@@ -131,6 +131,14 @@ class executeInWorkerThreadDecorator(object):
 	You do not need to call executeInWorkerThread functions. 
 	No need to use lambdas in the code as any parameters can be passed as 
 	Drawbacks: at the moment does not allow use of delay_ms and result_callback
+	Not tested with kwargs yet.
+	IMPORTANTG NOTE: for class methods, self should be passed to the function when it is called as first parameter (further parameters stay unchaged):
+		@workerthread.executeInWorkerThreadDecorator	
+		def someLongWorkingFunctionDecoratedForWorkerThread(self):
+			print "\tsomeLongWorkingFunction starts in worker thread"
+			
+		#Calling code:
+			self.someLongWorkingFunctionDecoratedForWorkerThread(self)
 
 	Example::
 		@workerthread.executeInWorkerThreadDecorator
@@ -148,16 +156,18 @@ class executeInWorkerThreadDecorator(object):
 		# this can be quite confusing.
 	
 	See example: samples\example_decor1.py 
+	samples\example_gui_class.py 
+	
+	
 	"""
 	#TODO: add parameter for delay and if possible for result_callback
-	#TODO: test with class methods
+	#TODO: test with kwargs
 	def __init__(self, f):
 		#print "Inside __init__()"
 		#Doc on decorators http://www.artima.com/weblogs/viewpost.jsp?thread=240845
 		self.f = f
 
 	def __call__(self, *args):
-		#TODO: add support for kwargs
 		globals.workerThreadInstance.postWork(
 			lambda: self.f(*args)
 		)
@@ -166,27 +176,32 @@ class executeInWorkerThreadDecorator(object):
 
 
 class executeInGUIThreadDecorator(object):
-	#TODO: enable and test
-	#def __init__(self, f):
-	#	#print "Inside __init__()"
-	#	#Doc on decorators http://www.artima.com/weblogs/viewpost.jsp?thread=240845
-	#	self.execFunc = f
-	#
-	#def __call__(self, *args):
-	#	#print "Inside __call__()"
-	#	#print "Sending to other thread"
-	#	wx.CallAfter(
-	#		lambda: self.execFunc(*args)
+	"""
+	This decorator posts function to WX GUI thread for execution.
+	Drawbacks: at the moment does not allow use of delay_ms and result_callback
+	Not tested with kwargs yet.
 	
+	IMPORTANTG NOTE: for class methods, self should be passed to the function when it is called as first parameter (further parameters stay unchaged):
+		@workerthread.executeInGUIThreadDecorator
+		def notifyOnProcessFinishInGUIThread(self=None, message=""):
+			print("Finished:"+message)
+			
+		#Calling code (in same class):
+			self.notifyOnProcessFinishInGUIThread(self, "long processing: finished")	
 	
-	#TODO: test with class methods
+	See example: 
+		samples\example_gui_class.py (for class methods)
+	
+	"""
+	#TODO: add parameter for delay and if possible for result_callback
+	#TODO: add support for kwargs
 	def __init__(self, f):
 		#print "Inside __init__()"
 		#Doc on decorators http://www.artima.com/weblogs/viewpost.jsp?thread=240845
 		self.f = f
 
 	def __call__(self, *args):
-		#TODO: add support for kwargs
+		
 		executeInGUIThread(lambda: self.f(*args))
 		#print "After self.f(*args)"
 
