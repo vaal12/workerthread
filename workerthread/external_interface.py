@@ -166,9 +166,6 @@ class executeInWorkerThreadDecorator(object):
 
 
 class executeInGUIThreadDecorator(object):
-	"""
-	Not yet implemented.
-	"""
 	#TODO: enable and test
 	#def __init__(self, f):
 	#	#print "Inside __init__()"
@@ -180,8 +177,18 @@ class executeInGUIThreadDecorator(object):
 	#	#print "Sending to other thread"
 	#	wx.CallAfter(
 	#		lambda: self.execFunc(*args)
-	#	
-	pass
+	
+	
+	#TODO: test with class methods
+	def __init__(self, f):
+		#print "Inside __init__()"
+		#Doc on decorators http://www.artima.com/weblogs/viewpost.jsp?thread=240845
+		self.f = f
+
+	def __call__(self, *args):
+		#TODO: add support for kwargs
+		executeInGUIThread(lambda: self.f(*args))
+		#print "After self.f(*args)"
 
 
 

@@ -8,6 +8,10 @@ import workerthread
 def notifyGUIThread(message):
 	applicationFrame.text_ctrl_1.SetValue(message)
 
+@workerthread.executeInWorkerThreadDecorator	
+def notifyOnProcessFinishInGUIThread(message):
+	applicationFrame.text_ctrl_1.SetValue("Long function finished with message:"+message)
+
 def someLongWorkingFunction():
 	print "\tsomeLongWorkingFunction starts in worker thread"
 	i=0
@@ -26,9 +30,7 @@ def someLongWorkingFunction():
 		i+=1
 	#END while i<10:
 	print "\tsomeLongWorkingFunction finished processing"
-	workerthread.executeInGUIThread(
-				lambda: notifyGUIThread("long processing: finished")
-			)
+	notifyOnProcessFinishInGUIThread("long processing: finished")
 	
 
 class MyFrame(wx.Frame):
