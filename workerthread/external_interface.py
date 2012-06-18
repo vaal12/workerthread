@@ -131,7 +131,6 @@ class executeInWorkerThreadDecorator(object):
 	You do not need to call executeInWorkerThread functions. 
 	No need to use lambdas in the code as any parameters can be passed as 
 	Drawbacks: at the moment does not allow use of delay_ms and result_callback
-	Not tested with kwargs yet.
 	IMPORTANTG NOTE: for class methods, self should be passed to the function when it is called as first parameter (further parameters stay unchaged):
 		@workerthread.executeInWorkerThreadDecorator	
 		def someLongWorkingFunctionDecoratedForWorkerThread(self):
@@ -161,15 +160,15 @@ class executeInWorkerThreadDecorator(object):
 	
 	"""
 	#TODO: add parameter for delay and if possible for result_callback
-	#TODO: test with kwargs
 	def __init__(self, f):
 		#print "Inside __init__()"
 		#Doc on decorators http://www.artima.com/weblogs/viewpost.jsp?thread=240845
 		self.f = f
 
-	def __call__(self, *args):
+	def __call__(self, *args, **kwargs):
+		#TODO: replace with call to executeInGUIThread function?
 		globals.workerThreadInstance.postWork(
-			lambda: self.f(*args)
+			lambda: self.f(*args, **kwargs)
 		)
 		#print "After self.f(*args)"
 
@@ -179,7 +178,6 @@ class executeInGUIThreadDecorator(object):
 	"""
 	This decorator posts function to WX GUI thread for execution.
 	Drawbacks: at the moment does not allow use of delay_ms and result_callback
-	Not tested with kwargs yet.
 	
 	IMPORTANTG NOTE: for class methods, self should be passed to the function when it is called as first parameter (further parameters stay unchaged):
 		@workerthread.executeInGUIThreadDecorator
@@ -194,15 +192,13 @@ class executeInGUIThreadDecorator(object):
 	
 	"""
 	#TODO: add parameter for delay and if possible for result_callback
-	#TODO: add support for kwargs
 	def __init__(self, f):
 		#print "Inside __init__()"
 		#Doc on decorators http://www.artima.com/weblogs/viewpost.jsp?thread=240845
 		self.f = f
 
-	def __call__(self, *args):
-		
-		executeInGUIThread(lambda: self.f(*args))
+	def __call__(self, *args, **kwargs):
+		executeInGUIThread(lambda: self.f(*args, **kwargs))
 		#print "After self.f(*args)"
 
 
